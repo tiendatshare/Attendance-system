@@ -1,0 +1,804 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Attendance System
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+            font-family: 'Roboto', sans-serif;
+        }
+  </style>
+ </head>
+ <body class="bg-gray-100">
+  <div class="flex h-screen">
+   <!-- Sidebar -->
+   <div class="bg-gradient-to-b from-red-600 to-red-800 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out" id="sidebar">
+    <a class="text-white flex items-center space-x-2 px-4 cursor-pointer" id="menu-toggle">
+     <span class="text-2xl font-extrabold">
+      <i class="fas fa-bars"></i>
+      Menu
+     </span>
+    </a>
+    <nav class="mt-10">
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="" id="home-link">
+       <i class="fas fa-home mr-3"></i>
+        Trang chủ
+     </a>
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="#" id="register-class-link">
+        <i class="fas fa-chalkboard-teacher mr-3"></i>
+        Đăng kí lớp
+     </a>
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="#" id="register-student-link">
+        <i class="fas fa-user-graduate mr-3"></i>
+        Đăng kí sinh viên
+     </a>
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="#" id="attendance-list-link">
+        <i class="fas fa-list-alt mr-3"></i>
+        Danh sách điểm danh
+     </a>
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="#" id="attendance-link">
+        <i class="fas fa-check-circle mr-3"></i>
+        Điểm danh
+     </a>
+     
+     <a class="block py-2.5 px-4 rounded transition duration-200 hover:bg-red-700" href="#" id="export-link">
+        <i class="fas fa-file-export mr-3"></i>
+        Xuất
+     </a>
+    </nav>
+   </div>
+   <!-- Main Content -->
+   <div class="flex-1 flex flex-col">
+    <header class="flex justify-between items-center bg-blue-600 py-4 px-6 rounded-lg">
+     <div class="flex items-center">
+      <button class="text-white focus:outline-none md:hidden" id="menu-button">
+       <i class="fas fa-bars">
+       </i>
+      </button>
+      <h1 class="text-2xl font-semibold text-white ml-4" id="page-title">
+       Trang chủ
+      </h1>
+     </div>
+     <div class="flex items-center">
+      <div class="bg-white rounded-full p-2">
+       <span class="text-red-600 text-2xl font-bold">
+        V
+       </span>
+       <span class="text-yellow-500 text-2xl font-bold">
+        K
+       </span>
+       <span class="text-blue-500 text-2xl font-bold">
+        U
+       </span>
+      </div>
+     </div>
+    </header>
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+     <div class="container mx-auto px-6 py-8">
+      <div class="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4 rounded-lg shadow-lg">
+       <div class="bg-white shadow-md rounded-lg p-6" id="main-content">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+         Welcome to the Attendance System
+        </h2>
+        <p class="text-gray-600">
+         Use the menu to navigate through different sections.
+        </p>
+       </div>
+       <!-- Attendance Page -->
+       <div class="hidden" id="attendance-page">
+        <div class="container mx-auto px-6 py-8">
+         <div class="flex">
+          <!-- Vùng Camera cho Attendance System -->
+          <div class="w-3/5 bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                Camera
+            </h2>
+            <img alt="Camera feed for attendance system" class="w-full h-auto" height="400" id="video-feed" src="{{ url_for('video_feed') }}" />
+          </div>
+          <div class="w-2/5 bg-white shadow-md rounded-lg p-6 ml-6">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                Thông tin lớp và sinh viên
+            </h2>
+            <!-- Dropdown for Class Selection -->
+            <div class="mb-4">
+                <label for="class-select" class="block text-gray-700">Chọn Lớp</label>
+                <select id="class-select" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            
+        </div>
+         </div>
+        </div>
+       </div>
+       <!-- Register Student Page -->
+        <div class="hidden" id="register-student-page">
+            <div class="container mx-auto px-6 py-8">
+                <div class="flex">
+                    <!-- Vùng Camera -->
+                    <div class="w-3/5 bg-white shadow-md rounded-lg p-6">
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                            Camera
+                        </h2>
+                        <img alt="Camera feed for student registration" class="w-full h-auto" height="400" id="registration-video-feed" src="{{ url_for('registration_video_feed') }}" />
+                        <button onclick="capturePhoto()" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">
+                            Chụp ảnh
+                        </button>
+                    </div>
+                    <!-- Thông tin đăng ký -->
+                    <div class="w-2/5 bg-white shadow-md rounded-lg p-6 ml-6">
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                            Thông tin đăng ký sinh viên
+                        </h2>
+                        <form onsubmit="event.preventDefault(); registerStudent();">
+                            <div class="mb-4">
+                                <label class="block text-gray-700">ID Sinh viên</label>
+                                <input id="student-id" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Tên sinh viên</label>
+                                <input id="student-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Lớp sinh hoạt</label>
+                                <input id="student-class" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Email</label>
+                                <input id="student-email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="email" />
+                            </div>
+                            <button class="bg-green-500 text-white py-2 px-4 rounded">
+                                Đăng ký
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       <!-- Register Class Page -->
+        <div class="hidden" id="register-class-page">
+            <div class="container mx-auto px-6 py-8">
+                <div class="flex justify-center">
+                    <div class="w-2/3 bg-white shadow-md rounded-lg p-6">
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                            Thông tin đăng ký lớp
+                        </h2>
+                        <form onsubmit="event.preventDefault(); registerClass();">
+                            <div class="mb-4">
+                                <label class="block text-gray-700">ID Lớp</label>
+                                <input id="class-id" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Tên lớp</label>
+                                <input id="class-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Tổng số sinh viên</label>
+                                <input id="total-students" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="number" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Học kỳ</label>
+                                <input id="semester" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Năm học</label>
+                                <input id="academic-year" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" />
+                            </div>
+                            <button class="bg-green-500 text-white py-2 px-4 rounded">
+                                Đăng ký
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Export Page -->
+        <div class="hidden" id="export-page">
+            <div class="container mx-auto px-6 py-8">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-6">Xuất danh sách sinh viên</h2>
+
+                <!-- Dropdown chọn lớp -->
+                <div class="mb-4">
+                    <label for="export-class-select" class="block text-gray-700">Chọn Lớp</label>
+                    <select id="export-class-select" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Options sẽ được tải động -->
+                    </select>
+                </div>
+
+                <!-- Bảng danh sách sinh viên -->
+                <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                    <table class="min-w-full bg-white" id="export-student-list-table">
+                        <thead>
+                            <tr>
+                                <th>ID Sinh viên</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số lần vắng</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Nút Xuất -->
+                <button id="export-button" class="mt-4 bg-green-500 text-white py-2 px-4 rounded">
+                    Xuất ra Excel
+                </button>
+            </div>
+        </div>
+        <!-- Attendance List Page -->
+        <div class="hidden" id="attendance-list-page">
+            <div class="container mx-auto px-6 py-8">
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">
+                        Danh sách điểm danh
+                    </h2>
+                    <div class="flex mb-4">
+                        <input id="search-input" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tìm kiếm (ID lớp hoặc ID sinh viên)..." type="text" />
+                        <button onclick="searchAttendance()" class="ml-2 bg-blue-500 text-white py-2 px-4 rounded">
+                            Tìm kiếm
+                        </button>
+                    </div>
+                    <table class="min-w-full bg-white" id="class-list-table">
+                        <thead>
+                            <tr>
+                                <th>ID Lớp</th>
+                                <th>Tên Lớp</th>
+                                <th>Tổng số sinh viên</th>
+                                <th>Học kỳ</th>
+                                <th>Năm học</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <!-- Bảng chi tiết sinh viên -->
+                <div class="hidden bg-white shadow-md rounded-lg p-6 mt-6" id="student-list">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Danh sách sinh viên</h2>
+                    <table class="min-w-full bg-white" id="student-list-table">
+                        <thead>
+                            <tr>
+                                <th>ID Sinh viên</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số lần vắng</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+       </div>
+       
+      </div>
+     </div>
+    </main>
+   </div>
+  </div>
+  <script>
+   /////////////////////
+   document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class-select');
+    const studentInfoDiv = document.getElementById('student-info');
+    const faceIdSpan = document.getElementById('face-id');
+    const studentIdSpan = document.getElementById('student-id');
+    const studentNameSpan = document.getElementById('student-name');
+    const studentScoreSpan = document.getElementById('student-score');
+    
+    let eventSource = null; // Khai báo biến để lưu trữ EventSource
+
+    // Fetch classes và populate dropdown
+    fetch('/api/classes')
+        .then(response => response.json())
+        .then(classes => {
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id_lop;
+                option.textContent = cls.ten_lop;
+                classSelect.appendChild(option);
+            });
+        });
+
+    // Xử lý khi chọn lớp
+    classSelect.addEventListener('change', async function() {
+        const selectedClass = classSelect.value;
+        if (selectedClass) {
+            // Đóng EventSource cũ nếu có
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Khởi động camera
+            await fetch('/control_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'start' })
+            });
+
+            // Gửi lớp được chọn đến backend
+            await fetch('/api/select_class', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id_lop: selectedClass })
+            });
+
+            // Tạo EventSource mới
+            eventSource = new EventSource('/video_feed');
+            
+            // Xử lý sự kiện message
+            eventSource.onmessage = function(event) {
+                try {
+                    console.log("Received data:", event.data);
+                    const attendanceInfo = JSON.parse(event.data);
+                    
+                    // Kiểm tra xem dữ liệu có hợp lệ không
+                    if (attendanceInfo && attendanceInfo.id_sinhvien) {
+                        // Cập nhật thông tin sinh viên
+                        faceIdSpan.textContent = attendanceInfo.face_id || 'N/A';
+                        studentIdSpan.textContent = attendanceInfo.id_sinhvien || 'N/A';
+                        studentNameSpan.textContent = attendanceInfo.ten_sinhvien || 'N/A';
+                        studentScoreSpan.textContent = attendanceInfo.score ? attendanceInfo.score.toFixed(2) : 'N/A';
+                        
+                        // Hiển thị div thông tin sinh viên
+                        studentInfoDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error("Error processing attendance info:", error);
+                }
+            };
+
+            // Xử lý lỗi kết nối
+            eventSource.onerror = function(error) {
+                console.error("EventSource failed:", error);
+                eventSource.close();
+            };
+        }
+    });
+});
+   /////////////
+    const menuButton = document.getElementById('menu-button');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const pageTitle = document.getElementById('page-title');
+    const attendancePage = document.getElementById('attendance-page');
+    const registerStudentPage = document.getElementById('register-student-page');
+    const registerClassPage = document.getElementById('register-class-page');
+    const attendanceListPage = document.getElementById('attendance-list-page');
+    const ExportPage = document.getElementById('export-page');
+    const menuToggle = document.getElementById('menu-toggle');
+    const videoElementAttendance = document.querySelector('#attendance-page #video-feed'); // Chọn phần tử video cho trang điểm danh
+    const videoElementRegistration = document.querySelector('#register-student-page #video-feed'); // Chọn phần tử video cho trang đăng ký sinh viên
+    
+  
+    menuButton.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+    });
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+    });
+    // Khôi phục trạng thái trang khi tải lại trang
+    const restorePageState = () => {
+        const page = localStorage.getItem('currentPage');
+        if (page) {
+            showPage(page);
+        } else {
+            showPage('home');  // Nếu không có trạng thái lưu, hiển thị trang chủ
+        }
+    };
+
+    const savePageState = (page) => {
+        localStorage.setItem('currentPage', page);
+    };
+
+     const startCamera = () => {
+        fetch('/control_camera', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'start' })
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Failed to start camera.');
+            }
+        })
+        .catch(error => {
+            console.error('Error starting camera:', error);
+        });
+    };
+
+    const stopCamera = () => {
+        fetch('/control_camera', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'stop' })
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Failed to stop camera.');
+            }
+        })
+        .catch(error => {
+            console.error('Error stopping camera:', error);
+        });
+    };
+     // Mặc định hiển thị trang chủ
+     document.getElementById('home-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        stopCamera(); //
+        savePageState('home'); 
+        showPage('home'); // Hiển thị trang chủ
+        window.location.reload();
+    });
+    
+    // Không tải lại trang khi bấm vào các mục, thay vào đó sử dụng AJAX
+    document.getElementById('attendance-link').addEventListener('click', (e) => {
+        e.preventDefault();  
+       
+        startCamera(); // Bật camera
+        savePageState('attendance');
+        showPage('attendance'); // Hiển thị trang điểm danh
+        window.location.reload();
+    });
+
+    document.getElementById('register-student-link').addEventListener('click', (e) => {
+        e.preventDefault();  
+        
+        startCamera(); // Bật camera
+        savePageState('register-student');
+        showPage('register-student'); // Hiển thị trang đăng ký sinh viên
+        window.location.reload();
+       
+    });
+
+    document.getElementById('export-link').addEventListener('click', (e) => {
+        e.preventDefault();  
+        stopCamera(); // Tắt camera
+        loadExportClasses();
+        showPage('export');
+        
+       
+    });
+
+    document.getElementById('register-class-link').addEventListener('click', (e) => {
+        e.preventDefault();  
+        stopCamera(); // Tắt camera
+        showPage('register-class'); // Hiển thị trang đăng ký lớp
+        
+    });
+    document.getElementById('attendance-list-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        stopCamera(); // Tắt camera
+        showPage('attendance-list'); 
+        loadClasses();// Hiển thị trang đăng ký lớp
+    });
+    async function registerClass() {
+        const idLop = document.getElementById("class-id").value;
+        const tenLop = document.getElementById("class-name").value;
+        const tongSinhVien = document.getElementById("total-students").value;
+        const hocKy = document.getElementById("semester").value;
+        const namHoc = document.getElementById("academic-year").value;
+
+        // Kiểm tra đầu vào
+        if (!idLop || !tenLop || !tongSinhVien || !hocKy || !namHoc) {
+            alert("Vui lòng nhập đầy đủ thông tin lớp!");
+            return;
+        }
+
+        const data = {
+            id_lop: idLop,
+            ten_lop: tenLop,
+            tong_sinh_vien: parseInt(tongSinhVien, 10), // Chuyển đổi số sinh viên sang dạng số nguyên
+            hoc_ky: hocKy,
+            nam_hoc: namHoc,
+        };
+
+        try {
+            const response = await fetch("/api/register_class", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || "Đăng ký lớp thành công!");
+                // Reset form sau khi đăng ký thành công
+                document.getElementById("class-id").value = "";
+                document.getElementById("class-name").value = "";
+                document.getElementById("total-students").value = "";
+                document.getElementById("semester").value = "";
+                document.getElementById("academic-year").value = "";
+            } else {
+                throw new Error(result.error || "Đăng ký lớp thất bại!");
+            }
+        } catch (error) {
+            alert(`Lỗi: ${error.message}`);
+        }
+    }
+    ////////Export page
+    async function loadExportClasses() {
+        const response = await fetch("/api/classes");
+        const classes = await response.json();
+        const classSelect = document.getElementById("export-class-select");
+        classSelect.innerHTML = ""; // Xóa nội dung cũ
+
+        classes.forEach(cls => {
+            const option = document.createElement("option");
+            option.value = cls.id_lop;
+            option.textContent = cls.ten_lop;
+            classSelect.appendChild(option);
+        });
+    }
+
+    // Tải danh sách sinh viên khi chọn lớp
+    document.getElementById("export-class-select").addEventListener("change", async function () {
+        const idLop = this.value;
+        if (!idLop) return;
+
+        const response = await fetch(`/api/students_in_class/${idLop}`);
+        const students = await response.json();
+        const tableBody = document.querySelector("#export-student-list-table tbody");
+        tableBody.innerHTML = ""; // Xóa nội dung cũ
+
+        students.forEach(student => {
+            const row = `
+                <tr>
+                    <td>${student.id_sinhvien}</td>
+                    <td>${student.ten}</td>
+                    <td>${student.email}</td>
+                    <td>${student.so_lan_vang}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    });
+
+    // Xử lý xuất file Excel
+    document.getElementById("export-button").addEventListener("click", async function () {
+    const idLop = document.getElementById("export-class-select").value;
+    console.log("ID Lớp được chọn:", idLop);
+
+    if (!idLop) {
+        alert("Vui lòng chọn lớp!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/export_class/${idLop}`, { method: "GET" });
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "D:\\Graduation_Project\\export_class.xlsx";
+            link.click();
+        } else {
+            const error = await response.json();
+            console.error("Lỗi từ API:", error);
+            alert("Xuất file thất bại: " + error.error);
+        }
+    } catch (err) {
+        console.error("Lỗi kết nối hoặc xử lý:", err);
+        alert("Xuất file thất bại!");
+    }
+    });
+
+    ////////
+    // Hàm hiển thị trang cụ thể, ẩn các trang còn lại
+    function showPage(page) {
+            // Ẩn tất cả các trang
+            const pages = ['attendance', 'register-student', 'register-class', 'attendance-list', 'home','export'];
+            pages.forEach(p => {
+                const pageElement = document.getElementById(p + '-page');
+                if (pageElement) {
+                    pageElement.classList.add('hidden');
+                }
+            });
+
+            // Hiển thị trang cần hiển thị
+            const currentPage = document.getElementById(page + '-page');
+            if (currentPage) {
+                currentPage.classList.remove('hidden');
+            }
+        }
+
+    // Mặc định hiển thị trang chủ
+    document.getElementById('home-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        stopCamera(); // Tắt camera
+        showPage('home'); // Hiển thị trang chủ
+    });
+    
+
+    window.onload = function() {
+        restorePageState();
+    };
+    //////////////////////////////////////////////////////////////////////////////////////////
+    async function registerStudent() {
+        const idSinhVien = document.getElementById("student-id").value;
+        const ten = document.getElementById("student-name").value;
+        const lopSinhHoat = document.getElementById("student-class").value;
+        const email = document.getElementById("student-email").value;
+
+        if (!idSinhVien || !ten || !lopSinhHoat || !email) {
+            alert("Vui lòng nhập đầy đủ thông tin sinh viên!");
+            return;
+        }
+
+        const data = {
+            id_sinhvien: idSinhVien,
+            ten: ten,
+            lop_sinh_hoat: lopSinhHoat,
+            email: email,
+        };
+
+        try {
+            const response = await fetch("/api/register_student", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || "Đăng ký sinh viên thành công!");
+                // Reset form sau khi đăng ký thành công
+                document.getElementById("student-id").value = "";
+                document.getElementById("student-name").value = "";
+                document.getElementById("student-class").value = "";
+                document.getElementById("student-email").value = "";
+            } else {
+                throw new Error(result.error || "Đăng ký sinh viên thất bại!Có thể đã tồn tại");
+            }
+        } catch (error) {
+            alert(`Lỗi: ${error.message}`);
+        }
+    }
+    //
+    async function capturePhoto() {
+        const idSinhVien = document.getElementById("student-id").value;
+
+        if (!idSinhVien) {
+            alert("Vui lòng nhập ID sinh viên trước khi chụp ảnh.");
+            return;
+        }
+
+        const response = await fetch('/capture_photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_sinhvien: idSinhVien }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Ảnh đã được chụp và lưu!');
+            // Gửi yêu cầu để chạy create_embeddings.py
+            const runResponse = await fetch('/run_create_embeddings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const runResult = await runResponse.json();
+            if (runResult.success) {
+                alert(runResult.message);
+                
+            } else {
+                alert(`Lỗi khi tạo embeddings: ${runResult.error}`);
+            }
+
+
+        } else {
+            alert(`Lỗi khi chụp ảnh: ${result.error}`);
+        }
+    }
+//////////
+
+async function loadClasses() {
+    const response = await fetch("/api/classes");
+    const classes = await response.json();
+    const tableBody = document.querySelector("#class-list-table tbody");
+    tableBody.innerHTML = ""; // Xóa nội dung cũ
+
+    classes.forEach(cls => {
+        const row = `
+            <tr>
+                <td>${cls.id_lop}</td>
+                <td>${cls.ten_lop}</td>
+                <td>${cls.tong_sinh_vien}</td>
+                <td>${cls.hoc_ky}</td>
+                <td>${cls.nam_hoc}</td>
+                <td><button onclick="loadStudentsInClass('${cls.id_lop}')" class="bg-blue-500 text-white py-1 px-2 rounded">Xem</button></td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+}
+////
+
+async function loadStudentsInClass(idLop) {
+    const response = await fetch(`/api/students_in_class/${idLop}`);
+    const students = await response.json();
+    const tableBody = document.querySelector("#student-list-table tbody");
+    tableBody.innerHTML = ""; // Xóa nội dung cũ
+
+    students.forEach(student => {
+        const row = `
+            <tr>
+                <td>${student.id_sinhvien}</td>
+                <td>${student.ten}</td>
+                <td>${student.email}</td>
+                <td>${student.so_lan_vang}</td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+
+    // Hiển thị bảng chi tiết sinh viên
+    document.getElementById("student-list").classList.remove("hidden");
+}
+
+/////
+async function searchAttendance() {
+    const query = document.getElementById("search-input").value.trim();
+
+    if (!query) {
+        alert("Vui lòng nhập từ khóa tìm kiếm!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/search?query=${query}`);
+        const results = await response.json();
+
+        if (response.ok) {
+            const tableBody = document.querySelector("#class-list-table tbody");
+            tableBody.innerHTML = ""; // Xóa nội dung cũ
+
+            if (results.length === 0) {
+                alert("Không tìm thấy kết quả nào.");
+                return;
+            }
+
+            results.forEach(result => {
+                const row = `
+                    <tr>
+                        <td>${result.id_lop}</td>
+                        <td>${result.ten_lop}</td>
+                        <td>${result.tong_sinh_vien}</td>
+                        <td>${result.hoc_ky}</td>
+                        <td>${result.nam_hoc}</td>
+                        <td><button onclick="loadStudentsInClass('${result.id_lop}')" class="bg-blue-500 text-white py-1 px-2 rounded">Xem</button></td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Ẩn bảng chi tiết sinh viên nếu đang hiển thị
+            document.getElementById("student-list").classList.add("hidden");
+        } else {
+            alert(`Lỗi khi tìm kiếm: ${results.error}`);
+        }
+    } catch (error) {
+        alert(`Lỗi: ${error.message}`);
+    }
+}
+ 
+</script>
+ </body>
+</html
